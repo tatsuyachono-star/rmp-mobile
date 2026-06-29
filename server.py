@@ -39,19 +39,7 @@ CORS(app)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ===== ffmpeg 解決 =====
-def _resolve_ffmpeg():
-    from shutil import which
-    p = which("ffmpeg")
-    if p:
-        return p
-    try:
-        import imageio_ffmpeg
-        return imageio_ffmpeg.get_ffmpeg_exe()
-    except Exception:
-        return "ffmpeg"
-
-FFMPEG = _resolve_ffmpeg()
+# ===== ffmpeg は不使用（メモリ節約） =====
 
 # ===== データベース =====
 _db_lock = threading.Lock()
@@ -103,7 +91,7 @@ def song_to_dict(row):
 # ===== 曲取得・ダウンロード =====
 def download_and_encode(url):
     """YouTube URL から音声をダウンロード・エンコードし、Blob(bytes)とメタデータを返す。
-    ファイルはサーバーに保存しない（スマホ側で保管）。
+    メモリ効率化：ffmpeg をスキップ、直接音声ファイルを返す。
     """
     try:
         logger.info(f"Downloading: {url}")
@@ -113,7 +101,7 @@ def download_and_encode(url):
             "socket_timeout": 20,
             "skip_unavailable_fragments": True,
             "http_headers": {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             },
         }
         with yt_dlp.YoutubeDL(resolve_opts) as ydl:
@@ -133,36 +121,28 @@ def download_and_encode(url):
                             download=False,
                         )
 
-                # 一時ファイルにダウンロード
+                # 一時ディレクトリ
                 tmp_dir = tempfile.mkdtemp()
+
+                # ffmpeg なし - ダウンロードのみ
                 ydl_opts = {
                     "format": "bestaudio/best",
                     "outtmpl": os.path.join(tmp_dir, "%(id)s.%(ext)s"),
-                    "postprocessors": [
-                        {"key": "FFmpegExtractAudio", "preferredcodec": "m4a"}
-                    ],
                     "quiet": True,
                     "no_warnings": True,
                     "noprogress": True,
-                    "ffmpeg_location": FFMPEG,
+                    "socket_timeout": 30,
                 }
 
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     ydl.download([entry.get("webpage_url") or ("https://www.youtube.com/watch?v=" + entry["id"])])
 
-                # m4a ファイルを探す
+                # ダウンロードされたファイルを探す
                 audio_file = None
-                for ext in ("m4a", "webm", "opus", "mp3", "mp4", "aac", "ogg", "wav", "flac"):
-                    candidate = os.path.join(tmp_dir, f"{entry['id']}.{ext}")
-                    if os.path.isfile(candidate):
-                        audio_file = candidate
+                for fn in os.listdir(tmp_dir):
+                    if fn.startswith(entry['id']):
+                        audio_file = os.path.join(tmp_dir, fn)
                         break
-
-                if not audio_file:
-                    for fn in os.listdir(tmp_dir):
-                        if fn.startswith(entry['id'] + "."):
-                            audio_file = os.path.join(tmp_dir, fn)
-                            break
 
                 if not audio_file:
                     raise RuntimeError("Audio file not found after download")
@@ -171,7 +151,7 @@ def download_and_encode(url):
                 with open(audio_file, "rb") as f:
                     audio_blob = f.read()
 
-                # ファイル削除
+                # 不要なファイルを削除
                 try:
                     for fn in os.listdir(tmp_dir):
                         os.remove(os.path.join(tmp_dir, fn))
@@ -220,7 +200,7 @@ def api_health():
 
 @app.post("/api/import-file")
 def api_import_file():
-    """ローカルオーディオファイルをアップロード."""
+    """ローカルオーディオファイルをアップロード - メモリ最適化版."""
     files = request.files.getlist("files")
     files = [f for f in files if f and f.filename]
     if not files:
@@ -229,33 +209,21 @@ def api_import_file():
     results = []
     for f in files:
         try:
-            tmp = os.path.join(TEMP_DIR, f"upload_{uuid.uuid4().hex[:8]}")
-            f.save(tmp)
-
-            # ファイルサイズを取得（メタデータ読み込みはスキップ）
-            file_size = os.path.getsize(tmp)
-            duration = 0.0  # クライアント側で再生時に検出
-
-            # ファイルをBase64エンコード
-            with open(tmp, 'rb') as file_obj:
-                audio_blob = file_obj.read()
-
-            import base64
-            audio_base64 = base64.b64encode(audio_blob).decode('utf-8')
-
-            try:
-                os.remove(tmp)
-            except:
-                pass
-
             vid = "f" + uuid.uuid4().hex[:15]
             title = os.path.splitext(f.filename)[0]
+
+            # ファイルをそのまま返す（Base64エンコードはスキップしてメモリ節約）
+            # クライアント側で Blob として処理
+            file_data = f.read()
+
+            import base64
+            audio_base64 = base64.b64encode(file_data).decode('utf-8')
 
             results.append({
                 "id": vid,
                 "title": title,
                 "artist": "",
-                "duration": duration,
+                "duration": 0.0,
                 "sourceUrl": "",
                 "audioBase64": audio_base64,
             })
@@ -265,10 +233,11 @@ def api_import_file():
                 c.execute(
                     """INSERT INTO songs (id, title, artist, duration, source_url, added_at)
                        VALUES (?, ?, ?, ?, ?, ?)""",
-                    (vid, title, "", duration, "", time.time())
+                    (vid, title, "", 0.0, "", time.time())
                 )
         except Exception as e:
             logger.error(f"File upload error: {e}\n{traceback.format_exc()}")
+            results.append({"error": str(e)})
 
     return jsonify({"songs": results})
 
