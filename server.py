@@ -98,10 +98,13 @@ def download_and_encode(url):
         resolve_opts = {
             "quiet": True,
             "no_warnings": True,
-            "socket_timeout": 20,
+            "socket_timeout": 30,
             "skip_unavailable_fragments": True,
+            "extractor_args": {"youtube": {"lang": ["en", "ja"]}},
             "http_headers": {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+                "Accept": "*/*",
+                "Accept-Language": "en-US,en;q=0.9",
             },
         }
         with yt_dlp.YoutubeDL(resolve_opts) as ydl:
@@ -132,6 +135,11 @@ def download_and_encode(url):
                     "no_warnings": True,
                     "noprogress": True,
                     "socket_timeout": 30,
+                    "http_headers": {
+                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+                        "Accept": "*/*",
+                        "Accept-Language": "en-US,en;q=0.9",
+                    },
                 }
 
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
