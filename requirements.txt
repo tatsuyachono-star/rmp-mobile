@@ -1,6 +1,8 @@
 flask==3.0.0
 flask-cors==4.0.0
 yt-dlp>=2025.02.01
-google-api-python-client==1.12.8
-setuptools
+setuptools>=70.0.0
+google-auth-httplib2>=0.2.0
+google-auth-oauthlib>=1.0.0
+google-api-python-client>=2.100.0
 gunicorn==22.0.0
