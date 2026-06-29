@@ -92,8 +92,11 @@ def song_to_dict(row):
 def download_and_encode(url):
     """YouTube URL から音声をダウンロード・エンコードし、Blob(bytes)とメタデータを返す。
     メモリ効率化：ffmpeg をスキップ、直接音声ファイルを返す。
+    プレイリスト対応：?list= を削除して単一曲のみダウンロード。
     """
     try:
+        # プレイリストパラメータを削除（YouTube 認証エラー対策）
+        url = re.sub(r'[?&]list=[^&]*', '', url).rstrip('?&')
         logger.info(f"Downloading: {url}")
         resolve_opts = {
             "quiet": False,
