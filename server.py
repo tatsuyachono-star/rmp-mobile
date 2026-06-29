@@ -129,6 +129,7 @@ def download_and_encode(url):
                 tmp_dir = tempfile.mkdtemp()
 
                 # ffmpeg なし - ダウンロードのみ
+                # プレイリストを無視（YouTube 認証エラー対策）
                 ydl_opts = {
                     "format": "bestaudio/best",
                     "outtmpl": os.path.join(tmp_dir, "%(id)s.%(ext)s"),
@@ -136,6 +137,7 @@ def download_and_encode(url):
                     "no_warnings": True,
                     "noprogress": True,
                     "socket_timeout": 30,
+                    "noplaylist": True,
                     "http_headers": {
                         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
                         "Accept": "*/*",
