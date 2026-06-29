@@ -3,849 +3,398 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RMP Mobile</title>
+    <title>RMP</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", sans-serif;
-            background: #1a1a1a;
-            color: #fff;
-        }
-        .app {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-        /* ヘッダー */
-        .header {
-            background: #2a2a2a;
-            padding: 0.75rem 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid #3a3a3a;
-        }
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-        .header-right {
-            display: flex;
-            gap: 1rem;
-        }
-        .header-btn {
-            padding: 0.5rem 1rem;
-            background: #3a3a3a;
-            border: none;
-            color: #fff;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: background 0.2s;
-        }
-        .header-btn:hover {
-            background: #4a4a4a;
-        }
-        /* タブナビゲーション */
-        .nav-tabs {
-            display: flex;
-            background: #2a2a2a;
-            border-bottom: 1px solid #3a3a3a;
-            padding: 0 1rem;
-        }
-        .nav-tab {
-            padding: 1rem;
-            border: none;
-            background: none;
-            color: #999;
-            cursor: pointer;
-            font-size: 0.95rem;
-            transition: color 0.2s;
-            border-bottom: 2px solid transparent;
-            margin-bottom: -1px;
-        }
-        .nav-tab:hover {
-            color: #fff;
-        }
-        .nav-tab.active {
-            color: #ff6b35;
-            border-bottom-color: #ff6b35;
-        }
-        /* メインコンテント */
-        .main {
-            flex: 1;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        .content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1rem;
-        }
-        /* 曲グリッド */
-        .songs-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 1rem;
-        }
-        .song-card {
-            background: #2a2a2a;
-            border-radius: 4px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: transform 0.2s, background 0.2s;
-            display: flex;
-            flex-direction: column;
-        }
-        .song-card:hover {
-            background: #333;
-            transform: scale(1.02);
-        }
-        .song-thumbnail {
-            width: 100%;
-            aspect-ratio: 1;
-            background: #444;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            color: #666;
-            position: relative;
-        }
-        .song-thumbnail.has-img {
-            background-size: cover;
-            background-position: center;
-        }
-        .song-card-info {
-            padding: 0.75rem;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        .song-card-title {
-            font-weight: bold;
-            font-size: 0.9rem;
-            margin-bottom: 0.25rem;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .song-card-artist {
-            color: #999;
-            font-size: 0.8rem;
-            display: -webkit-box;
-            -webkit-line-clamp: 1;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .song-card-duration {
-            color: #666;
-            font-size: 0.75rem;
-            margin-top: auto;
-            text-align: right;
-        }
-        /* リスト表示 */
-        .songs-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        .song-item {
-            background: #2a2a2a;
-            padding: 0.75rem;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .song-item:hover {
-            background: #333;
-        }
-        .song-item-thumb {
-            width: 50px;
-            height: 50px;
-            background: #444;
-            border-radius: 3px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            flex-shrink: 0;
-        }
-        .song-item-info {
-            flex: 1;
-            min-width: 0;
-        }
-        .song-item-title {
-            font-weight: bold;
-            font-size: 0.95rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .song-item-artist {
-            color: #999;
-            font-size: 0.85rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .song-item-duration {
-            color: #999;
-            font-size: 0.85rem;
-            min-width: 35px;
-            text-align: right;
-        }
-        .song-item-actions {
-            display: flex;
-            gap: 0.25rem;
-            align-items: center;
-        }
-        .btn-icon {
-            background: none;
-            border: none;
-            color: #999;
-            cursor: pointer;
-            font-size: 1.1rem;
-            padding: 0.25rem;
-            transition: color 0.2s;
-        }
-        .btn-icon:hover {
-            color: #ff6b35;
-        }
-        .btn-icon.active {
-            color: #ff6b35;
-        }
-        /* インポート セクション */
-        .import-form {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-        .import-input {
-            flex: 1;
-            padding: 0.75rem;
-            background: #2a2a2a;
-            border: 1px solid #3a3a3a;
-            color: #fff;
-            border-radius: 4px;
-            font-size: 0.9rem;
-        }
-        .import-input::placeholder {
-            color: #666;
-        }
-        .btn-primary {
-            padding: 0.75rem 1.5rem;
-            background: #ff6b35;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: bold;
-            transition: background 0.2s;
-            white-space: nowrap;
-        }
-        .btn-primary:hover {
-            background: #ff5522;
-        }
-        .btn-primary:disabled {
-            background: #666;
-            cursor: not-allowed;
-        }
-        .status-message {
-            padding: 0.75rem;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-        }
-        .status-success {
-            background: #1f5f2f;
-            color: #7eff7e;
-        }
-        .status-error {
-            background: #5f1f1f;
-            color: #ff7e7e;
-        }
-        .status-info {
-            background: #1f4a7f;
-            color: #7ec8ff;
-        }
-        .empty-state {
-            text-align: center;
-            color: #666;
-            padding: 2rem;
-        }
-        /* プレイリスト */
-        .playlist-create {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-        .playlist-item {
-            background: #2a2a2a;
-            padding: 1rem;
-            border-radius: 4px;
-            margin-bottom: 0.5rem;
-            cursor: pointer;
-            transition: background 0.2s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .playlist-item:hover {
-            background: #333;
-        }
-        .playlist-item-info h3 {
-            font-size: 1rem;
-            margin-bottom: 0.25rem;
-        }
-        .playlist-item-info p {
-            color: #999;
-            font-size: 0.85rem;
-        }
-        .playlist-item-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-        .playlist-songs {
-            background: #1f1f1f;
-            padding: 1rem;
-            border-radius: 4px;
-            margin-bottom: 1rem;
-        }
-        .playlist-songs h4 {
-            margin-bottom: 0.75rem;
-            font-size: 0.95rem;
-        }
-        /* プレイヤー */
-        .player {
-            background: #2a2a2a;
-            border-top: 1px solid #3a3a3a;
-            padding: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        .player-thumbnail {
-            width: 60px;
-            height: 60px;
-            background: #3a3a3a;
-            border-radius: 3px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            flex-shrink: 0;
-        }
-        .player-info {
-            flex: 1;
-            min-width: 0;
-        }
-        .player-title {
-            font-weight: bold;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .player-artist {
-            color: #999;
-            font-size: 0.85rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .player-controls {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-        audio {
-            min-width: 200px;
-            max-width: 100%;
-        }
-        .loader {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #444;
-            border-radius: 50%;
-            border-top-color: #ff6b35;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #1a1a1a; color: #fff; }
+        .app { display: flex; flex-direction: column; height: 100vh; }
+        .header { background: #2a2a2a; padding: 0.75rem 1rem; border-bottom: 1px solid #3a3a3a; }
+        .header-title { font-size: 1.2rem; font-weight: bold; }
+        .nav-tabs { display: flex; background: #2a2a2a; border-bottom: 1px solid #3a3a3a; }
+        .nav-tab { padding: 1rem; border: none; background: none; color: #999; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+        .nav-tab.active { color: #ff6b35; border-bottom-color: #ff6b35; }
+        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .content { flex: 1; overflow-y: auto; padding: 1rem; }
+        .songs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1rem; }
+        .song-card { background: #2a2a2a; border-radius: 4px; padding: 1rem; cursor: pointer; text-align: center; transition: background 0.2s; }
+        .song-card:hover { background: #333; }
+        .song-card-title { font-weight: bold; margin-bottom: 0.5rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .song-card-artist { color: #999; font-size: 0.85rem; margin-bottom: 0.5rem; }
+        .song-card-actions { display: flex; justify-content: center; gap: 0.5rem; }
+        .btn-icon { background: none; border: none; color: #999; cursor: pointer; font-size: 1rem; transition: color 0.2s; }
+        .btn-icon:hover { color: #ff6b35; }
+        .btn-icon.active { color: #ff6b35; }
+        .import-form { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+        .input-text { flex: 1; padding: 0.75rem; background: #2a2a2a; border: 1px solid #3a3a3a; color: #fff; border-radius: 4px; }
+        .btn-primary { padding: 0.75rem 1.5rem; background: #ff6b35; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-primary:hover { background: #ff5522; }
+        .btn-file { padding: 0.75rem 1.5rem; background: #3a5a8a; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+        .status { padding: 0.75rem; margin-bottom: 1rem; border-radius: 4px; }
+        .status-success { background: #1f5f2f; color: #7eff7e; }
+        .status-error { background: #5f1f1f; color: #ff7e7e; }
+        .empty { text-align: center; color: #666; padding: 2rem; }
+        .player { background: #2a2a2a; border-top: 1px solid #3a3a3a; padding: 1rem; }
+        .player-title { font-weight: bold; margin-bottom: 0.5rem; }
+        .player-artist { color: #999; font-size: 0.85rem; margin-bottom: 1rem; }
+        audio { width: 100%; margin-bottom: 1rem; }
+        .key-section { background: #3a3a3a; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; }
+        .key-control { display: flex; align-items: center; gap: 0.75rem; }
+        .key-label { font-weight: bold; min-width: 50px; }
+        .key-slider { flex: 1; }
+        .key-value { min-width: 40px; text-align: center; color: #ff6b35; font-weight: bold; }
+        .actions { display: flex; gap: 0.5rem; }
+        .btn-action { flex: 1; padding: 0.5rem; background: #444; border: none; color: #fff; border-radius: 3px; cursor: pointer; font-size: 0.85rem; }
+        .btn-action:hover { background: #555; }
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; }
+        .modal.show { display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: #2a2a2a; padding: 2rem; border-radius: 8px; max-width: 90%; width: 500px; }
+        .modal-header { font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem; }
+        textarea { width: 100%; min-height: 200px; padding: 0.75rem; background: #3a3a3a; border: 1px solid #4a4a4a; color: #fff; border-radius: 4px; margin-bottom: 1rem; }
+        .modal-actions { display: flex; gap: 0.5rem; }
+        .modal-actions button { flex: 1; padding: 0.75rem; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .modal-save { background: #ff6b35; color: #fff; }
+        .modal-cancel { background: #444; color: #fff; }
+        .file-input { display: none; }
         @media (max-width: 768px) {
-            .songs-grid {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            }
-            .player {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .player-controls {
-                width: 100%;
-            }
-            audio {
-                width: 100%;
-                min-width: unset;
-            }
-            .import-form {
-                flex-direction: column;
-            }
+            .songs-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+            .import-form { flex-direction: column; }
         }
     </style>
 </head>
 <body>
-    <div id="app" class="app">
-        <!-- ヘッダー -->
-        <div class="header">
-            <div class="header-left">
-                🎵 RMP
-            </div>
-            <div class="header-right">
-                <button class="header-btn" @click="viewMode = viewMode === 'grid' ? 'list' : 'grid'" title="表示切替">
-                    {{ viewMode === 'grid' ? '📋' : '🎴' }}
-                </button>
-                <button class="header-btn" @click="currentTab = 'import'" title="取込み">
-                    ⬇️ 取り込み
-                </button>
-            </div>
-        </div>
+<div id="app" class="app">
+    <!-- ヘッダー -->
+    <div class="header">
+        <div class="header-title">🎵 RMP</div>
+    </div>
 
-        <!-- ナビゲーション -->
-        <div class="nav-tabs">
-            <button class="nav-tab" :class="{active: currentTab === 'library'}" @click="currentTab = 'library'">
-                ライブラリ
-            </button>
-            <button class="nav-tab" :class="{active: currentTab === 'favorites'}" @click="currentTab = 'favorites'">
-                ⭐ お気に入り
-            </button>
-            <button class="nav-tab" :class="{active: currentTab === 'playlists'}" @click="currentTab = 'playlists'">
-                📂 プレイリスト
-            </button>
-            <button class="nav-tab" :class="{active: currentTab === 'import'}" @click="currentTab = 'import'">
-                取り込み
-            </button>
-        </div>
+    <!-- ナビゲーション -->
+    <div class="nav-tabs">
+        <button class="nav-tab" :class="{active: tab === 'library'}" @click="tab = 'library'">ライブラリ</button>
+        <button class="nav-tab" :class="{active: tab === 'favorites'}" @click="tab = 'favorites'">⭐ お気に入り</button>
+        <button class="nav-tab" :class="{active: tab === 'playlists'}" @click="tab = 'playlists'">📂 プレイリスト</button>
+        <button class="nav-tab" :class="{active: tab === 'import'}" @click="tab = 'import'">取り込み</button>
+    </div>
 
-        <!-- メインコンテント -->
-        <div class="main">
-            <div class="content">
-                <!-- ライブラリ -->
-                <div v-if="currentTab === 'library'">
-                    <div v-if="songs.length === 0" class="empty-state">
-                        <p>曲がありません</p>
-                        <p style="font-size: 0.9rem; margin-top: 0.5rem;">「取り込み」タブから追加してください</p>
-                    </div>
-                    <div v-if="viewMode === 'grid'" class="songs-grid">
-                        <div v-for="song in songs" :key="song.id" class="song-card" @click="playSong(song)">
-                            <div class="song-thumbnail" :style="{backgroundImage: song.thumb ? `url(${song.thumb})` : 'none'}">
-                                <span v-if="!song.thumb">🎵</span>
-                            </div>
-                            <div class="song-card-info">
-                                <div class="song-card-title">{{ song.title }}</div>
-                                <div class="song-card-artist">{{ song.artist || '' }}</div>
-                                <div class="song-card-duration">{{ formatDuration(song.duration) }}</div>
-                                <div style="margin-top: 0.5rem; display: flex; gap: 0.25rem;">
-                                    <button class="btn-icon" @click.stop="toggleFavorite(song)" :class="{active: song.favorite}" title="お気に入り">
-                                        {{ song.favorite ? '♥' : '♡' }}
-                                    </button>
-                                    <button class="btn-icon" @click.stop="deleteSong(song.id)" title="削除">
-                                        🗑️
-                                    </button>
-                                </div>
-                            </div>
+    <!-- メインコンテント -->
+    <div class="main">
+        <div class="content">
+            <!-- ライブラリ -->
+            <div v-if="tab === 'library'">
+                <div v-if="songs.length === 0" class="empty">曲がありません</div>
+                <div v-else class="songs-grid">
+                    <div v-for="song in songs" :key="song.id" class="song-card" @click="play(song)">
+                        <div class="song-card-title">{{ song.title }}</div>
+                        <div class="song-card-artist">{{ song.artist }}</div>
+                        <div class="song-card-actions">
+                            <button class="btn-icon" @click.stop="toggleFav(song)" :class="{active: song.favorite}">{{ song.favorite ? '♥' : '♡' }}</button>
+                            <button class="btn-icon" @click.stop="deleteSong(song.id)">🗑️</button>
                         </div>
                     </div>
-                    <div v-if="viewMode === 'list'" class="songs-list">
-                        <div v-for="song in songs" :key="song.id" class="song-item" @click="playSong(song)">
-                            <div class="song-item-thumb" :style="{backgroundImage: song.thumb ? `url(${song.thumb})` : 'none', backgroundSize: 'cover'}">
-                                <span v-if="!song.thumb">🎵</span>
+                </div>
+            </div>
+
+            <!-- お気に入り -->
+            <div v-if="tab === 'favorites'">
+                <div v-if="favs.length === 0" class="empty">お気に入りがありません</div>
+                <div v-else class="songs-grid">
+                    <div v-for="song in favs" :key="song.id" class="song-card" @click="play(song)">
+                        <div class="song-card-title">{{ song.title }}</div>
+                        <div class="song-card-artist">{{ song.artist }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- プレイリスト -->
+            <div v-if="tab === 'playlists'">
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                    <input v-model="playlistName" type="text" class="input-text" placeholder="プレイリスト名" @keyup.enter="createPlaylist">
+                    <button class="btn-primary" @click="createPlaylist">作成</button>
+                </div>
+                <div v-if="playlists.length === 0" class="empty">プレイリストがありません</div>
+                <div v-else>
+                    <div v-for="pl in playlists" :key="pl.id" style="margin-bottom: 1rem;">
+                        <div style="background: #2a2a2a; padding: 1rem; border-radius: 4px; display: flex; justify-content: space-between; cursor: pointer;" @click="selectedPl = selectedPl?.id === pl.id ? null : pl">
+                            <div>
+                                <div style="font-weight: bold;">{{ pl.name }}</div>
+                                <div style="color: #999; font-size: 0.85rem;">{{ pl.songs?.length || 0 }}曲</div>
                             </div>
-                            <div class="song-item-info">
-                                <div class="song-item-title">{{ song.title }}</div>
-                                <div class="song-item-artist">{{ song.artist || '' }}</div>
-                            </div>
-                            <div class="song-item-duration">{{ formatDuration(song.duration) }}</div>
-                            <div class="song-item-actions">
-                                <button class="btn-icon" @click.stop="toggleFavorite(song)" :class="{active: song.favorite}">
-                                    {{ song.favorite ? '♥' : '♡' }}
-                                </button>
-                                <button class="btn-icon" @click.stop="deleteSong(song.id)">
-                                    🗑️
-                                </button>
+                            <button class="btn-icon" @click.stop="deletePlaylist(pl.id)">🗑️</button>
+                        </div>
+                        <div v-if="selectedPl?.id === pl.id && pl.songs?.length > 0" style="padding-left: 1rem; margin-top: 0.5rem;">
+                            <div v-for="s in pl.songs" :key="s.id" class="song-card" @click="play(s)" style="padding: 0.75rem;">
+                                <div style="font-weight: bold;">{{ s.title }}</div>
+                                <button class="btn-icon" @click.stop="removeFromPl(pl.id, s.id)">✕</button>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- お気に入り -->
-                <div v-if="currentTab === 'favorites'">
-                    <div v-if="favoriteSongs.length === 0" class="empty-state">
-                        お気に入りがありません
-                    </div>
-                    <div v-if="viewMode === 'grid'" class="songs-grid">
-                        <div v-for="song in favoriteSongs" :key="song.id" class="song-card" @click="playSong(song)">
-                            <div class="song-thumbnail" :style="{backgroundImage: song.thumb ? `url(${song.thumb})` : 'none'}">
-                                <span v-if="!song.thumb">🎵</span>
-                            </div>
-                            <div class="song-card-info">
-                                <div class="song-card-title">{{ song.title }}</div>
-                                <div class="song-card-artist">{{ song.artist || '' }}</div>
-                                <div class="song-card-duration">{{ formatDuration(song.duration) }}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div v-if="viewMode === 'list'" class="songs-list">
-                        <div v-for="song in favoriteSongs" :key="song.id" class="song-item" @click="playSong(song)">
-                            <div class="song-item-thumb" :style="{backgroundImage: song.thumb ? `url(${song.thumb})` : 'none', backgroundSize: 'cover'}">
-                                <span v-if="!song.thumb">🎵</span>
-                            </div>
-                            <div class="song-item-info">
-                                <div class="song-item-title">{{ song.title }}</div>
-                                <div class="song-item-artist">{{ song.artist || '' }}</div>
-                            </div>
-                            <div class="song-item-duration">{{ formatDuration(song.duration) }}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- プレイリスト -->
-                <div v-if="currentTab === 'playlists'">
-                    <div class="playlist-create">
-                        <input v-model="newPlaylistName" type="text" class="import-input" placeholder="プレイリスト名" @keyup.enter="createPlaylist">
-                        <button class="btn-primary" @click="createPlaylist">作成</button>
-                    </div>
-                    <div v-if="playlists.length === 0" class="empty-state">
-                        プレイリストがありません
-                    </div>
-                    <div v-for="playlist in playlists" :key="playlist.id">
-                        <div class="playlist-item" @click="togglePlaylist(playlist)">
-                            <div class="playlist-item-info">
-                                <h3>{{ playlist.name }}</h3>
-                                <p>{{ playlist.count || 0 }}曲</p>
-                            </div>
-                            <div class="playlist-item-actions">
-                                <button class="btn-icon" @click.stop="deletePlaylist(playlist.id)" title="削除">🗑️</button>
-                            </div>
-                        </div>
-                        <div v-if="selectedPlaylist?.id === playlist.id && playlist.songs?.length > 0" class="playlist-songs">
-                            <h4>📂 {{ playlist.name }}</h4>
-                            <div class="songs-list">
-                                <div v-for="song in playlist.songs" :key="song.id" class="song-item" @click="playSong(song)">
-                                    <div class="song-item-thumb" style="font-size: 0.8rem;">🎵</div>
-                                    <div class="song-item-info">
-                                        <div class="song-item-title">{{ song.title }}</div>
-                                        <div class="song-item-artist">{{ song.artist || '' }}</div>
-                                    </div>
-                                    <div class="song-item-duration">{{ formatDuration(song.duration) }}</div>
-                                    <div class="song-item-actions">
-                                        <button class="btn-icon" @click.stop="removeFromPlaylist(playlist.id, song.id)">✕</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 取り込み -->
-                <div v-if="currentTab === 'import'">
-                    <h3 style="margin-bottom: 1rem;">YouTube から曲を追加</h3>
-                    <div class="import-form">
-                        <input
-                            v-model="importUrl"
-                            type="text"
-                            class="import-input"
-                            placeholder="YouTube URL または曲名を入力"
-                            @keyup.enter="importSong"
-                        >
-                        <button class="btn-primary" @click="importSong" :disabled="importing">
-                            <span v-if="importing">
-                                <span class="loader"></span>
-                            </span>
-                            <span v-else>追加</span>
-                        </button>
-                    </div>
-                    <div v-if="importStatus" :class="['status-message', 'status-' + importStatus.type]">
-                        {{ importStatus.message }}
-                    </div>
-                </div>
             </div>
-        </div>
 
-        <!-- プレイヤー -->
-        <div class="player">
-            <div class="player-thumbnail" v-if="currentSong" :style="{backgroundImage: currentSong.thumb ? `url(${currentSong.thumb})` : 'none', backgroundSize: 'cover'}">
-                <span v-if="!currentSong.thumb">🎵</span>
-            </div>
-            <div class="player-info" v-if="currentSong">
-                <div class="player-title">{{ currentSong.title }}</div>
-                <div class="player-artist">{{ currentSong.artist || '' }}</div>
-            </div>
-            <div class="player-controls">
-                <audio ref="audioPlayer" @play="onAudioPlay" @pause="onAudioPause" @ended="onAudioEnded"></audio>
+            <!-- 取り込み -->
+            <div v-if="tab === 'import'">
+                <h3 style="margin-bottom: 1rem;">YouTube から曲を追加</h3>
+                <div class="import-form">
+                    <input v-model="importUrl" type="text" class="input-text" placeholder="YouTube URL または曲名" @keyup.enter="importSong">
+                    <button class="btn-primary" @click="importSong" :disabled="importing">{{ importing ? '中...' : '追加' }}</button>
+                </div>
+                <div v-if="importMsg" :class="['status', importMsg.type]">{{ importMsg.text }}</div>
+
+                <h3 style="margin: 2rem 0 1rem;">ローカル ファイルから追加</h3>
+                <button class="btn-file" @click="$refs.fileInput.click()">📁 ファイルを選択</button>
+                <input ref="fileInput" type="file" multiple accept="audio/*" class="file-input" @change="uploadFile">
+                <div v-if="fileMsg" :class="['status', fileMsg.type]">{{ fileMsg.text }}</div>
             </div>
         </div>
     </div>
 
-    <script>
-        const { createApp, ref, computed, onMounted } = Vue;
+    <!-- プレイヤー -->
+    <div class="player" v-if="current">
+        <div class="player-title">{{ current.title }}</div>
+        <div class="player-artist">{{ current.artist }}</div>
+        <audio ref="audio" controls @timeupdate="onTimeUpdate"></audio>
 
-        createApp({
-            setup() {
-                const API_URL = 'https://rmp-mobile.onrender.com';
+        <!-- キー変更 -->
+        <div class="key-section">
+            <div class="key-control">
+                <label class="key-label">キー:</label>
+                <input type="range" v-model.number="keyShift" min="-12" max="12" class="key-slider" @change="onKeyChange">
+                <span class="key-value">{{ keyShift > 0 ? '+' : '' }}{{ keyShift }}</span>
+            </div>
+        </div>
 
-                const currentTab = ref('library');
-                const viewMode = ref('grid');
-                const songs = ref([]);
-                const playlists = ref([]);
-                const selectedPlaylist = ref(null);
-                const currentSong = ref(null);
-                const importUrl = ref('');
-                const importing = ref(false);
-                const importStatus = ref(null);
-                const newPlaylistName = ref('');
-                const audioPlayer = ref(null);
+        <!-- アクション -->
+        <div class="actions">
+            <button class="btn-action" @click="openLyrics">📝 歌詞</button>
+            <button class="btn-action" @click="exportSong('mp3')">💾 MP3</button>
+            <button class="btn-action" @click="exportSong('m4a')">💾 M4A</button>
+        </div>
+    </div>
 
-                let db = null;
+    <!-- 歌詞モーダル -->
+    <div class="modal" :class="{show: showLyrics}">
+        <div class="modal-content">
+            <div class="modal-header">歌詞を編集</div>
+            <textarea v-model="lyrics" placeholder="歌詞を入力..."></textarea>
+            <div class="modal-actions">
+                <button class="modal-save" @click="saveLyrics">保存</button>
+                <button class="modal-cancel" @click="showLyrics = false">キャンセル</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-                onMounted(() => {
-                    initDB();
+<script>
+const { createApp, ref, computed, onMounted } = Vue;
+const API = 'https://rmp-mobile.onrender.com';
+
+createApp({
+    setup() {
+        const tab = ref('library');
+        const songs = ref([]);
+        const playlists = ref([]);
+        const selectedPl = ref(null);
+        const playlistName = ref('');
+        const current = ref(null);
+        const keyShift = ref(0);
+        const importUrl = ref('');
+        const importing = ref(false);
+        const importMsg = ref(null);
+        const fileMsg = ref(null);
+        const showLyrics = ref(false);
+        const lyrics = ref('');
+
+        let db = null;
+
+        onMounted(() => {
+            const req = indexedDB.open('RMP_Mobile', 1);
+            req.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains('songs')) db.createObjectStore('songs', { keyPath: 'id' });
+            };
+            req.onsuccess = (e) => {
+                db = e.target.result;
+                loadSongs();
+            };
+        });
+
+        function loadSongs() {
+            if (!db) return;
+            const tx = db.transaction('songs', 'readonly');
+            const req = tx.objectStore('songs').getAll();
+            req.onsuccess = () => {
+                songs.value = (req.result || []).sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0));
+            };
+        }
+
+        async function importSong() {
+            if (!importUrl.value.trim()) return;
+            importing.value = true;
+            importMsg.value = null;
+            try {
+                const res = await fetch(`${API}/api/import`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: importUrl.value })
                 });
+                if (!res.ok) throw new Error('Failed');
+                const data = await res.json();
+                if (!data.songs) throw new Error(data.error || 'Error');
 
-                function initDB() {
-                    const req = indexedDB.open('RMP_Mobile', 1);
-                    req.onerror = () => console.error('IndexedDB error:', req.error);
-                    req.onupgradeneeded = (e) => {
-                        const db = e.target.result;
-                        if (!db.objectStoreNames.contains('songs')) {
-                            db.createObjectStore('songs', { keyPath: 'id' });
-                        }
-                        if (!db.objectStoreNames.contains('playlists')) {
-                            db.createObjectStore('playlists', { keyPath: 'id' });
-                        }
-                    };
-                    req.onsuccess = (e) => {
-                        db = e.target.result;
-                        loadSongs();
-                        loadPlaylists();
-                    };
-                }
-
-                async function importSong() {
-                    if (!importUrl.value.trim()) return;
-                    importing.value = true;
-                    importStatus.value = null;
-
-                    try {
-                        const res = await fetch(`${API_URL}/api/import`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ url: importUrl.value }),
-                        });
-
-                        if (!res.ok) {
-                            const err = await res.json();
-                            throw new Error(err.error || `Error: ${res.status}`);
-                        }
-
-                        const data = await res.json();
-                        if (data.error) throw new Error(data.error);
-
-                        if (db && data.songs) {
-                            const tx = db.transaction('songs', 'readwrite');
-                            const store = tx.objectStore('songs');
-                            for (const song of data.songs) {
-                                try {
-                                    const audioBlob = await fetch(`data:application/octet-stream;base64,${song.audioBase64}`).then(r => r.blob());
-                                    const blobUrl = URL.createObjectURL(audioBlob);
-                                    store.put({
-                                        ...song,
-                                        blobUrl,
-                                        favorite: false,
-                                        addedAt: Date.now(),
-                                    });
-                                } catch (err) {
-                                    console.error('Failed to save song:', song.id, err);
-                                }
-                            }
-                        }
-
-                        importStatus.value = {
-                            type: 'success',
-                            message: `${data.songs.length}曲を追加しました！`,
-                        };
-                        importUrl.value = '';
-                        setTimeout(() => loadSongs(), 200);
-                    } catch (err) {
-                        importStatus.value = {
-                            type: 'error',
-                            message: `エラー: ${err.message}`,
-                        };
-                        console.error('Import error:', err);
-                    } finally {
-                        importing.value = false;
+                if (db) {
+                    const tx = db.transaction('songs', 'readwrite');
+                    for (const s of data.songs) {
+                        const blob = await fetch(`data:application/octet-stream;base64,${s.audioBase64}`).then(r => r.blob());
+                        tx.objectStore('songs').put({...s, blobUrl: URL.createObjectURL(blob), favorite: false, lyrics: '', addedAt: Date.now()});
                     }
                 }
+                importMsg.value = { type: 'status-success', text: `${data.songs.length}曲追加しました!` };
+                importUrl.value = '';
+                setTimeout(loadSongs, 200);
+            } catch (e) {
+                importMsg.value = { type: 'status-error', text: `エラー: ${e.message}` };
+            } finally {
+                importing.value = false;
+            }
+        }
 
-                function loadSongs() {
-                    if (!db) return;
-                    const tx = db.transaction('songs', 'readonly');
-                    const store = tx.objectStore('songs');
-                    const req = store.getAll();
-                    req.onsuccess = (e) => {
-                        songs.value = (e.target.result || []).sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0));
-                    };
-                    req.onerror = () => console.error('Load songs error:', req.error);
-                }
-
-                function loadPlaylists() {
-                    if (!db) return;
-                    const tx = db.transaction('playlists', 'readonly');
-                    const store = tx.objectStore('playlists');
-                    const req = store.getAll();
-                    req.onsuccess = (e) => {
-                        playlists.value = (e.target.result || []).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-                    };
-                }
-
-                function playSong(song) {
-                    currentSong.value = song;
-                    if (audioPlayer.value && song.blobUrl) {
-                        audioPlayer.value.src = song.blobUrl;
-                        audioPlayer.value.play().catch(err => console.error('Play error:', err));
+        async function uploadFile(e) {
+            const files = Array.from(e.target.files || []);
+            if (!files.length) return;
+            fileMsg.value = { type: 'status-success', text: 'アップロード中...' };
+            try {
+                const form = new FormData();
+                files.forEach(f => form.append('files', f));
+                const res = await fetch(`${API}/api/import-file`, { method: 'POST', body: form });
+                if (!res.ok) throw new Error(`Error ${res.status}`);
+                const data = await res.json();
+                if (!data.songs) throw new Error(data.error || 'Error');
+                if (db) {
+                    const tx = db.transaction('songs', 'readwrite');
+                    for (const s of data.songs) {
+                        const blob = await fetch(`data:application/octet-stream;base64,${s.audioBase64}`).then(r => r.blob());
+                        tx.objectStore('songs').put({...s, blobUrl: URL.createObjectURL(blob), favorite: false, lyrics: '', addedAt: Date.now()});
                     }
                 }
+                fileMsg.value = { type: 'status-success', text: `${files.length}ファイル追加しました!` };
+                setTimeout(loadSongs, 200);
+            } catch (e) {
+                fileMsg.value = { type: 'status-error', text: `エラー: ${e.message}` };
+            }
+            e.target.value = '';
+        }
 
-                function toggleFavorite(song) {
-                    song.favorite = !song.favorite;
-                    if (db) {
-                        const tx = db.transaction('songs', 'readwrite');
-                        tx.objectStore('songs').put(song);
-                    }
-                }
+        function play(song) {
+            current.value = song;
+            keyShift.value = 0;
+            const audio = document.querySelector('audio');
+            if (audio && song.blobUrl) {
+                audio.src = song.blobUrl;
+                audio.play().catch(() => {});
+            }
+        }
 
-                function deleteSong(id) {
-                    if (!confirm('この曲を削除しますか？')) return;
-                    if (db) {
-                        const tx = db.transaction('songs', 'readwrite');
-                        tx.objectStore('songs').delete(id);
-                        tx.oncomplete = () => loadSongs();
-                    }
-                    if (currentSong.value?.id === id) {
-                        currentSong.value = null;
-                    }
-                }
+        function onKeyChange() {
+            const audio = document.querySelector('audio');
+            if (audio && current.value) {
+                audio.pause();
+                audio.src = `${API}/api/audio/${current.value.id}?key=${keyShift.value}`;
+                audio.play().catch(() => {});
+            }
+        }
 
-                function createPlaylist() {
-                    if (!newPlaylistName.value.trim()) return;
-                    if (db) {
-                        const tx = db.transaction('playlists', 'readwrite');
-                        const store = tx.objectStore('playlists');
-                        const id = Date.now();
-                        store.put({
-                            id,
-                            name: newPlaylistName.value,
-                            createdAt: Date.now(),
-                            songs: [],
-                            count: 0,
-                        });
-                        tx.oncomplete = () => loadPlaylists();
-                    }
-                    newPlaylistName.value = '';
-                }
+        function toggleFav(song) {
+            song.favorite = !song.favorite;
+            if (db) {
+                const tx = db.transaction('songs', 'readwrite');
+                tx.objectStore('songs').put(song);
+            }
+        }
 
-                function deletePlaylist(id) {
-                    if (!confirm('このプレイリストを削除しますか？')) return;
-                    if (db) {
-                        const tx = db.transaction('playlists', 'readwrite');
-                        tx.objectStore('playlists').delete(id);
-                        tx.oncomplete = () => {
-                            if (selectedPlaylist.value?.id === id) {
-                                selectedPlaylist.value = null;
-                            }
-                            loadPlaylists();
-                        };
-                    }
-                }
+        function deleteSong(id) {
+            if (!confirm('削除しますか?')) return;
+            if (db) {
+                const tx = db.transaction('songs', 'readwrite');
+                tx.objectStore('songs').delete(id);
+                tx.oncomplete = loadSongs;
+            }
+            if (current.value?.id === id) current.value = null;
+        }
 
-                function togglePlaylist(playlist) {
-                    if (selectedPlaylist.value?.id === playlist.id) {
-                        selectedPlaylist.value = null;
-                    } else {
-                        selectedPlaylist.value = playlist;
-                    }
-                }
+        function openLyrics() {
+            if (!current.value) return;
+            lyrics.value = current.value.lyrics || '';
+            showLyrics.value = true;
+        }
 
-                function removeFromPlaylist(playlistId, songId) {
-                    if (db) {
-                        const tx = db.transaction('playlists', 'readwrite');
-                        const store = tx.objectStore('playlists');
-                        const req = store.get(playlistId);
-                        req.onsuccess = (e) => {
-                            const playlist = e.target.result;
-                            if (playlist) {
-                                playlist.songs = playlist.songs.filter(s => s.id !== songId);
-                                playlist.count = playlist.songs.length;
-                                store.put(playlist);
-                                selectedPlaylist.value = playlist;
-                            }
-                        };
-                    }
-                }
+        async function saveLyrics() {
+            if (!current.value) return;
+            try {
+                await fetch(`${API}/api/songs/${current.value.id}/lyrics`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ lyrics: lyrics.value })
+                });
+                current.value.lyrics = lyrics.value;
+                showLyrics.value = false;
+            } catch (e) { console.error(e); }
+        }
 
-                function formatDuration(sec) {
-                    if (!sec || sec < 0) return '0:00';
-                    const m = Math.floor(sec / 60);
-                    const s = Math.floor(sec % 60);
-                    return `${m}:${s.toString().padStart(2, '0')}`;
-                }
+        function exportSong(fmt) {
+            if (!current.value) return;
+            window.location.href = `${API}/api/export/${current.value.id}?format=${fmt}&key=${keyShift.value}`;
+        }
 
-                const favoriteSongs = computed(() => songs.value.filter(s => s.favorite));
+        function onTimeUpdate() {}
 
-                return {
-                    currentTab,
-                    viewMode,
-                    songs,
-                    playlists,
-                    selectedPlaylist,
-                    currentSong,
-                    importUrl,
-                    importing,
-                    importStatus,
-                    newPlaylistName,
-                    audioPlayer,
-                    importSong,
-                    playSong,
-                    toggleFavorite,
-                    deleteSong,
-                    createPlaylist,
-                    deletePlaylist,
-                    togglePlaylist,
-                    removeFromPlaylist,
-                    formatDuration,
-                    favoriteSongs,
-                    onAudioPlay: () => {},
-                    onAudioPause: () => {},
-                    onAudioEnded: () => {},
-                };
-            },
-        }).mount('#app');
-    </script>
+        function createPlaylist() {
+            if (!playlistName.value.trim()) return;
+            if (db) {
+                const tx = db.transaction('playlists', 'readwrite');
+                const pl = { id: Date.now(), name: playlistName.value, songs: [], createdAt: Date.now() };
+                tx.objectStore('playlists').add(pl);
+                tx.oncomplete = loadPlaylists;
+            }
+            playlistName.value = '';
+        }
+
+        function deletePlaylist(id) {
+            if (!confirm('削除しますか?')) return;
+            if (db) {
+                const tx = db.transaction('playlists', 'readwrite');
+                tx.objectStore('playlists').delete(id);
+                tx.oncomplete = loadPlaylists;
+            }
+            if (selectedPl.value?.id === id) selectedPl.value = null;
+        }
+
+        function removeFromPl(plId, sId) {
+            const pl = playlists.value.find(p => p.id === plId);
+            if (!pl) return;
+            pl.songs = pl.songs.filter(s => s.id !== sId);
+            if (db) {
+                const tx = db.transaction('playlists', 'readwrite');
+                tx.objectStore('playlists').put(pl);
+            }
+            selectedPl.value = pl;
+        }
+
+        function loadPlaylists() {
+            if (!db) return;
+            const tx = db.transaction('playlists', 'readonly');
+            const req = tx.objectStore('playlists').getAll();
+            req.onsuccess = () => {
+                playlists.value = req.result || [];
+            };
+        }
+
+        const favs = computed(() => songs.value.filter(s => s.favorite));
+
+        return { tab, songs, playlists, selectedPl, playlistName, current, keyShift, importUrl, importing, importMsg, fileMsg, showLyrics, lyrics,
+                 importSong, uploadFile, play, onKeyChange, toggleFav, deleteSong, createPlaylist, deletePlaylist, removeFromPl, openLyrics, saveLyrics, exportSong, onTimeUpdate, favs };
+    }
+}).mount('#app');
+</script>
 </body>
 </html>

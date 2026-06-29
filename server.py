@@ -218,6 +218,60 @@ def index():
 def api_health():
     return jsonify({"ok": True, "version": "2026.06.29"})
 
+@app.post("/api/import-file")
+def api_import_file():
+    """ローカルオーディオファイルをアップロード."""
+    files = request.files.getlist("files")
+    files = [f for f in files if f and f.filename]
+    if not files:
+        return jsonify({"error": "No files selected"}), 400
+
+    results = []
+    for f in files:
+        try:
+            tmp = os.path.join(TEMP_DIR, f"upload_{uuid.uuid4().hex[:8]}")
+            f.save(tmp)
+
+            # ファイルサイズを取得（メタデータ読み込みはスキップ）
+            file_size = os.path.getsize(tmp)
+            duration = 0.0  # クライアント側で再生時に検出
+
+            # ファイルをBase64エンコード
+            with open(tmp, 'rb') as file_obj:
+                audio_blob = file_obj.read()
+
+            import base64
+            audio_base64 = base64.b64encode(audio_blob).decode('utf-8')
+
+            try:
+                os.remove(tmp)
+            except:
+                pass
+
+            vid = "f" + uuid.uuid4().hex[:15]
+            title = os.path.splitext(f.filename)[0]
+
+            results.append({
+                "id": vid,
+                "title": title,
+                "artist": "",
+                "duration": duration,
+                "sourceUrl": "",
+                "audioBase64": audio_base64,
+            })
+
+            # DB に保存
+            with _db_lock, db() as c:
+                c.execute(
+                    """INSERT INTO songs (id, title, artist, duration, source_url, added_at)
+                       VALUES (?, ?, ?, ?, ?, ?)""",
+                    (vid, title, "", duration, "", time.time())
+                )
+        except Exception as e:
+            logger.error(f"File upload error: {e}\n{traceback.format_exc()}")
+
+    return jsonify({"songs": results})
+
 @app.post("/api/import")
 def api_import():
     """YouTube URL から曲をダウンロード・エンコードし、音声Blob + メタデータを返す。
