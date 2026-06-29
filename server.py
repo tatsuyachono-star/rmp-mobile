@@ -257,19 +257,31 @@ def api_import_file():
 
 @app.post("/api/import")
 def api_import():
-    """YouTube URL から曲をダウンロード・エンコードし、音声Blob + メタデータを返す。
-    スマホ側で IndexedDB に保存。
+    """YouTube API + yt-dlp でダウンロード・エンコード。
+    クライアントから API キーを受け取る。
     """
     data = request.get_json(force=True, silent=True) or {}
     url = (data.get("url") or "").strip()
+    api_key = (data.get("apiKey") or "").strip()
 
     if not url:
         return jsonify({"error": "URL is empty"}), 400
 
-    if not re.match(r"^https?://", url):
-        url = "ytsearch1:" + url
+    if not api_key:
+        return jsonify({"error": "API key is empty"}), 400
 
     try:
+        # YouTube URL でない場合は、API で検索して URL に変換
+        if not re.match(r"^https?://(www\.)?youtube", url):
+            from googleapiclient.discovery import build
+            youtube = build("youtube", "v3", developerKey=api_key)
+            req = youtube.search().list(q=url, part="snippet", type="video", maxResults=1)
+            res = req.execute()
+            if not res.get("items"):
+                return jsonify({"error": "動画が見つかりません"}), 400
+            video_id = res["items"][0]["id"]["videoId"]
+            url = f"https://www.youtube.com/watch?v={video_id}"
+
         results = download_and_encode(url)
 
         # DB に曲情報を保存

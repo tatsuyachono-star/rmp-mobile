@@ -75,6 +75,7 @@
         <button class="nav-tab" :class="{active: tab === 'favorites'}" @click="tab = 'favorites'">⭐ お気に入り</button>
         <button class="nav-tab" :class="{active: tab === 'playlists'}" @click="tab = 'playlists'">📂 プレイリスト</button>
         <button class="nav-tab" :class="{active: tab === 'import'}" @click="tab = 'import'">取り込み</button>
+        <button class="nav-tab" :class="{active: tab === 'settings'}" @click="tab = 'settings'">⚙️ 設定</button>
     </div>
 
     <!-- メインコンテント -->
@@ -146,6 +147,20 @@
                 <input ref="fileInput" type="file" multiple accept="audio/*" class="file-input" @change="uploadFile">
                 <div v-if="fileMsg" :class="['status', fileMsg.type]">{{ fileMsg.text }}</div>
             </div>
+
+            <!-- 設定 -->
+            <div v-if="tab === 'settings'">
+                <h3 style="margin-bottom: 1rem;">YouTube API キー</h3>
+                <p style="color: #999; margin-bottom: 1rem; font-size: 0.9rem;">
+                    YouTube からのダウンロードを有効にするには、YouTube Data API キーが必要です。<br>
+                    <a href="https://console.cloud.google.com" target="_blank" style="color: #ff6b35;">Google Cloud Console</a> から取得してください。
+                </p>
+                <div class="import-form">
+                    <input v-model="apiKey" type="password" class="input-text" placeholder="YouTube Data API キー" @keyup.enter="saveApiKey">
+                    <button class="btn-primary" @click="saveApiKey">保存</button>
+                </div>
+                <div v-if="apiKeyMsg" :class="['status', apiKeyMsg.type]">{{ apiKeyMsg.text }}</div>
+            </div>
         </div>
     </div>
 
@@ -204,6 +219,8 @@ createApp({
         const fileMsg = ref(null);
         const showLyrics = ref(false);
         const lyrics = ref('');
+        const apiKey = ref(localStorage.getItem('youtube_api_key') || '');
+        const apiKeyMsg = ref(null);
 
         let db = null;
 
@@ -219,6 +236,16 @@ createApp({
             };
         });
 
+        function saveApiKey() {
+            if (!apiKey.value.trim()) {
+                apiKeyMsg.value = { type: 'status-error', text: 'API キーを入力してください' };
+                return;
+            }
+            localStorage.setItem('youtube_api_key', apiKey.value);
+            apiKeyMsg.value = { type: 'status-success', text: 'API キーを保存しました' };
+            setTimeout(() => { apiKeyMsg.value = null; }, 3000);
+        }
+
         function loadSongs() {
             if (!db) return;
             const tx = db.transaction('songs', 'readonly');
@@ -230,13 +257,17 @@ createApp({
 
         async function importSong() {
             if (!importUrl.value.trim()) return;
+            if (!apiKey.value.trim()) {
+                importMsg.value = { type: 'status-error', text: 'まず⚙️設定でAPI キーを入力してください' };
+                return;
+            }
             importing.value = true;
             importMsg.value = null;
             try {
                 const res = await fetch(`${API}/api/import`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: importUrl.value })
+                    body: JSON.stringify({ url: importUrl.value, apiKey: apiKey.value })
                 });
                 if (!res.ok) throw new Error('Failed');
                 const data = await res.json();
@@ -392,7 +423,7 @@ createApp({
         const favs = computed(() => songs.value.filter(s => s.favorite));
 
         return { tab, songs, playlists, selectedPl, playlistName, current, keyShift, importUrl, importing, importMsg, fileMsg, showLyrics, lyrics,
-                 importSong, uploadFile, play, onKeyChange, toggleFav, deleteSong, createPlaylist, deletePlaylist, removeFromPl, openLyrics, saveLyrics, exportSong, onTimeUpdate, favs };
+                 apiKey, apiKeyMsg, importSong, uploadFile, play, onKeyChange, toggleFav, deleteSong, createPlaylist, deletePlaylist, removeFromPl, openLyrics, saveLyrics, exportSong, onTimeUpdate, favs, saveApiKey };
     }
 }).mount('#app');
 </script>
